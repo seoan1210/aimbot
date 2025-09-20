@@ -32,7 +32,7 @@ def grab_screen():
 
 def move_mouse(x_offset, y_offset, human_mode=True):
     if human_mode:
-        smoothness = 7
+        smoothness = 10
         x_move = int(x_offset / smoothness)
         y_move = int(y_offset / smoothness)
         
@@ -87,7 +87,7 @@ def process_image(image, human_mode=True):
             center_y = int(moment["m01"] / moment["m00"])
 
             center_x_offset = int(center_x - (BOX_SIZE / 2))
-            center_y_offset = int(center_y - (BOX_SIZE / 2)) + 40
+            center_y_offset = int(center_y - (BOX_SIZE / 2)) + 60
 
             move_mouse(center_x_offset, center_y_offset, human_mode=human_mode)
 
