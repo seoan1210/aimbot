@@ -1,61 +1,57 @@
 
------
+### **✨ Py-Aimbot 소개 및 사용법 (Introduction & How to Use Py-Aimbot)**
 
-### **Py-Aimbot**
+이 스크립트는 게임에서 특정 색상(밝은 빨간색)의 적을 자동으로 조준하는 파이썬 프로그램이에요. 사용법은 아주 간단해요.
 
-#### **소개**
+This script is a Python program that automatically aims at targets of a specific color (bright red) in games. It's very simple to use.
 
-이 프로젝트는 **Python**으로 구현된 간단한 에임봇 스크립트입니다. 화면 중앙의 특정 색상(밝은 빨간색)을 인식하고, 마우스를 자동으로 조준하도록 설계되었습니다. 게임 환경에서 체력 바나 하이라이트된 적을 추적하는 데 사용할 수 있습니다. 이 에임봇은 머리만 맞추기에 최적화 되어있습니다.
+1.  **실행하기 (Run the Script)**: 스크립트를 실행하면 터미널(검은색 창)이 열리고 "your monitors (ex: 1920 1080):"라는 메시지가 나와요.
+    When you run the script, a terminal (a black window) will open with the message "your monitors (ex: 1920 1080):".
 
-#### **주요 기능**
+2.  **해상도 입력 (Enter Resolution)**: 현재 사용 중인 모니터의 해상도(예: `1920 1080`)를 입력하고 엔터를 누르면 돼요.
+    Simply enter your monitor's resolution (e.g., `1920 1080`) and press Enter.
 
-  * **화면 캡처**: 모니터의 특정 영역을 빠르게 캡처합니다.
-  * **색상 인식**: OpenCV를 사용하여 이미지에서 밝은 빨간색 영역을 식별합니다.
-  * **마우스 자동 이동**: `win32api`를 통해 인식된 목표물의 중심으로 마우스를 이동시킵니다.
-  * **두 가지 모드**:
-      * **자연스러운 모드 (기본값)**: 인간의 움직임처럼 부드럽게 마우스를 이동시켜 자연스러운 에임을 제공합니다.
-      * **초고성능 모드**: 마우스가 목표물에 즉각적으로 이동하여 빠른 반응 속도를 보입니다.
+3.  **작동 시작 (Start Operation)**: 에임봇이 바로 작동을 시작하고, 화면 중앙에 있는 빨간색 대상을 찾아서 마우스를 움직여줘요.
+    The aimbot will start working immediately, finding red targets in the center of your screen and moving the mouse for you.
 
-#### **요구 사항**
+4.  **종료하기 (Quit)**: 프로그램을 멈추고 싶을 때는 터미널 창을 클릭하고 키보드 **`q`**를 누르면 돼요.
+    To stop the program, click on the terminal window and press the **`q`** key. 
 
-이 스크립트를 실행하려면 아래 파이썬 라이브러리가 필요합니다.
+---
 
-```bash
-pip install opencv-python numpy mss pywin32
-```
+### **⚠️ 사용 시 주의할 점 (Important Warnings)**
 
-  * **`opencv-python`**: 이미지 처리 및 색상 인식을 위해 사용됩니다.
-  * **`numpy`**: 이미지 데이터를 효율적으로 다루기 위해 사용됩니다.
-  * **`mss`**: 빠르고 효율적인 화면 캡처를 담당합니다.
-  * **`pywin32`**: 마우스 이벤트를 제어하기 위해 사용됩니다.
+이 스크립트는 편리하지만, 몇 가지 조심해야 할 점이 있어요.
 
-#### **사용법**
+While this script is useful, there are a few important things to be careful about.
 
-1.  **스크립트 실행**: 터미널이나 명령 프롬프트에서 스크립트를 실행합니다.
-    ```bash
-    python your_script_name.py
-    ```
-2.  **모니터 해상도 입력**: 실행 후, 터미널에 모니터 해상도(예: `1920 1080`)를 입력하고 엔터를 누릅니다.
-3.  **에임봇 동작**: 에임봇이 즉시 화면 중앙을 분석하며 마우스를 자동으로 이동시킵니다.
-4.  **종료**: 에임봇을 종료하려면 터미널 창에서 키보드 \*\*`q`\*\*를 누릅니다.
+1.  **게임 밴(Ban) 위험 (Risk of Game Ban)**: 많은 온라인 게임은 외부 프로그램(에임봇, 매크로 등) 사용을 금지하고 있어요. 이 스크립트를 온라인 게임에서 사용하면 **계정이 영구 정지될 수 있어요.** 이 스크립트는 오프라인 환경이나 테스트용으로만 사용하는 것이 가장 안전해요.
+    Many online games prohibit the use of external programs (aimbots, macros, etc.). Using this script in an online game can result in a **permanent account ban.** It's safest to only use this script in an offline environment or for testing purposes.
 
-#### **코드 설명**
+2.  **정확도 문제 (Accuracy Issues)**: 에임봇은 설정된 색상을 인식해서 움직이기 때문에, 다른 빨간색 물체(맵, UI 요소 등)가 화면에 보이면 **잘못 조준할 수 있어요.** 게임 화면의 디자인에 따라 정확도가 크게 달라질 수 있어요.
+    The aimbot recognizes and moves based on a set color, so it may **aim incorrectly** if other red objects (e.g., on the map or in the UI) appear on the screen. The accuracy can vary significantly depending on the game's interface design.
 
-  * **`main()` 함수**:
-      * 스크립트의 주 실행 루프입니다.
-      * `grab_screen()` 함수를 호출하여 화면을 지속적으로 캡처합니다.
-      * `process_image()` 함수에 캡처한 이미지를 전달하여 목표물을 찾아 마우스를 이동시킵니다.
-      * `q` 키가 눌리면 루프를 종료하고 프로그램을 종료합니다.
-  * **`grab_screen()`**:
-      * `mss` 라이브러리를 사용해 모니터 중앙의 `BOX_SIZE` 영역을 캡처합니다.
-  * **`move_mouse()`**:
-      * `human_mode` 변수에 따라 마우스의 움직임이 부드러워지거나 즉각적으로 변합니다.
-      * `x_offset`과 `y_offset`만큼 마우스를 이동시킵니다.
-  * **`process_image()`**:
-      * OpenCV의 `cv2.cvtColor()`를 사용해 BGR 이미지를 HSV로 변환합니다.
-      * `cv2.inRange()`를 이용해 빨간색 마스크를 생성하고, `cv2.morphologyEx()`로 노이즈를 제거합니다.
-      * `cv2.findContours()`로 윤곽선을 찾고, 가장 큰 윤곽선을 체력 바로 인식합니다.
-      * `cv2.moments()`로 윤곽선의 중심을 계산한 후, `move_mouse()` 함수를 호출하여 마우스를 이동시킵니다.
-      * 디버깅을 위해 캡처된 화면에 사각형과 원을 그려 목표물을 시각적으로 보여줍니다.
+3.  **시스템 성능 (System Performance)**: 이 스크립트는 실시간으로 화면을 캡처하고 분석하기 때문에, 컴퓨터의 CPU나 GPU 성능에 따라 **게임이 느려지거나 렉(Lag)이 발생할 수 있어요.** 최적의 성능을 위해 `BOX_SIZE` 값을 적절하게 조절하는 것이 좋아요.
+    This script captures and analyzes the screen in real-time, which might cause **your game to slow down or lag** depending on your computer's CPU or GPU performance. It's a good idea to adjust the `BOX_SIZE` value to optimize performance.
 
------
+---
+
+### **🧐 스크립트 상세 설명 (Detailed Script Explanation)**
+
+코드를 보면 다양한 기능들이 서로 유기적으로 연결되어 있어요.
+
+Looking at the code, you'll see various functions are interconnected.
+
+* **`main()` 함수 (The `main()` function)**: 이 부분이 모든 것을 움직이는 엔진이에요. `while True:` 루프를 사용해서 에임봇을 끊임없이 동작시키죠.
+    This is the engine that drives everything. It uses a `while True:` loop to keep the aimbot running continuously.
+
+* **`grab_screen()` 함수 (The `grab_screen()` function)**: **`mss`**라는 라이브러리를 사용해서 모니터 화면을 엄청 빠르게 찍어내는 역할을 해요. 특히, 화면 전체가 아닌 `BOX_SIZE` 만큼의 작은 영역만 캡처해서 성능을 높여요.
+    Using a library called **`mss`**, this function captures the monitor screen very quickly. It improves performance by capturing only a small area defined by `BOX_SIZE` instead of the entire screen.
+
+* **`process_image()` 함수 (The `process_image()` function)**: 캡처된 이미지에서 목표물을 찾는 역할을 해요. `cv2.inRange()`를 사용해 빨간색을 찾아내고, `cv2.findContours()`로 윤곽선을 찾아서 `move_mouse()` 함수를 호출해요.
+    This function finds the target in the captured image. It uses `cv2.inRange()` to find red areas, `cv2.findContours()` to locate contours, and then calls the `move_mouse()` function.
+
+* **`move_mouse()` 함수 (The `move_mouse()` function)**: 마우스를 실제로 움직이는 부분이에요. **`human_mode`**가 `True`일 때는 부드럽게 움직이고, `False`일 때는 목표물로 바로 이동해요.
+    This is the part that actually moves the mouse. When **`human_mode`** is `True`, it moves smoothly, and when it's `False`, it moves directly to the target.
+
+If you want to modify the code yourself, you can change the `BOX_SIZE` value to adjust the detection area or alter the `LOWER_COLOR_RANGE` and `UPPER_COLOR_RANGE` values to track a different color.
