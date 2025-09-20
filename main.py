@@ -16,7 +16,7 @@ def get_monitor_resolution():
         return 1920, 1080 
 
 MONITOR_WIDTH, MONITOR_HEIGHT = get_monitor_resolution()
-BOX_SIZE = 400
+BOX_SIZE = 700
 
 
 LOWER_COLOR_RANGE1 = np.array([0, 100, 100])
@@ -40,7 +40,7 @@ def grab_screen():
 
 def move_mouse(x_offset, y_offset, human_mode=True):
     if human_mode:
-        smoothness = 20
+        smoothness = 25
         x_move = int(x_offset / smoothness)
         y_move = int(y_offset / smoothness)
         
@@ -53,7 +53,7 @@ def move_mouse(x_offset, y_offset, human_mode=True):
         if abs(x_offset) < threshold and abs(y_offset) < threshold:
             return
     else:
-        smoothness = 2
+        smoothness = 1.5
         x_move = int(x_offset / smoothness)
         y_move = int(y_offset / smoothness)
         
