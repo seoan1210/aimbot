@@ -86,7 +86,7 @@ def process_image(image, human_mode=True):
             center_x = int(moment["m10"] / moment["m00"])
             center_y = int(moment["m01"] / moment["m00"])
 
-            center_x_offset = int(center_x - (BOX_SIZE / 2))
+            center_x_offset = int(center_x - (BOX_SIZE / 2)) + 30
             center_y_offset = int(center_y - (BOX_SIZE / 2)) + 60
 
             move_mouse(center_x_offset, center_y_offset, human_mode=human_mode)
