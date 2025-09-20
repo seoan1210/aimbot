@@ -32,7 +32,7 @@ def grab_screen():
 
 def move_mouse(x_offset, y_offset, human_mode=True):
     if human_mode:
-        smoothness = 10
+        smoothness = 7
         x_move = int(x_offset / smoothness)
         y_move = int(y_offset / smoothness)
         
@@ -41,7 +41,7 @@ def move_mouse(x_offset, y_offset, human_mode=True):
         if y_move == 0 and y_offset != 0:
             y_move = 1 if y_offset > 0 else -1
         
-        threshold = 5
+        threshold = 1
         if abs(x_offset) < threshold and abs(y_offset) < threshold:
             return
             
