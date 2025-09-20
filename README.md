@@ -5,14 +5,14 @@
 
 This script is a Python program that automatically aims at targets of a specific color (bright red) in games. It's very simple to use.
 
-1.  **실행하기 (Run the Script)**: 스크립트를 실행하면 터미널(검은색 창)이 열리고 "your monitors (ex: 1920 1080):"라는 메시지가 나와요.
+1.  **실행하기 (Run the Script)**: 스크립트를 실행하면 터미널(검은색 창)이 열립니다
 
-    When you run the script, a terminal (a black window) will open with the message "your monitors (ex: 1920 1080):".
+    When you run the script, a terminal (a black window) will open.
 
     
-3.  **해상도 입력 (Enter Resolution)**: 현재 사용 중인 모니터의 해상도(예: `1920 1080`)를 입력하고 엔터를 누르면 돼요.
+3.  **해상도 입력 (Enter Resolution)**: 현재 사용 중인 모니터의 해상도를 자동으로 불러옵니다.
 
-    Simply enter your monitor's resolution (e.g., `1920 1080`) and press Enter.
+    Simply your monitor's resolution.
 
     
 
