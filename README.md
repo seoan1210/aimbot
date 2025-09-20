@@ -97,7 +97,7 @@ Looking at the code, you'll see various functions are interconnected.
 If you want to modify the code yourself, you can change the `BOX_SIZE` value to adjust the detection area or alter the `LOWER_COLOR_RANGE` and `UPPER_COLOR_RANGE` values to track a different color.
 
 ---
-만약 발로란트 에임봇을 이용하고 싶다면 발로란트에임이라는 파일을 저장소에서 다운로드 받아 .py확장자로 고친뒤 실행하십시오 라이브러리도 꼭 설치해야합니다.
+만약 발로란트 에임봇을 이용하고 싶다면 발로란트 에임봇이라는 파일을 저장소에서 다운로드 받아 .py확장자로 고친뒤 실행하십시오 라이브러리도 꼭 설치해야합니다.
 
 If you want to use the Valorant aimbot, download the file called 발로란트 에임봇 from the repository, change the extension to .py, and run it. You must also install the library.
 
