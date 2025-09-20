@@ -6,7 +6,16 @@ from win32 import win32api
 import win32con
 
 
-MONITOR_WIDTH, MONITOR_HEIGHT = map(int, input("your monitors (ex: 1920 1080): ").split())
+def get_monitor_resolution():
+    try:
+        w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
+        h = win32api.GetSystemMetrics(win32con.SM_CYSCREEN)
+        return w, h
+    except Exception as e:
+        print(f"ERROR: {e}")
+        return 1920, 1080 
+
+MONITOR_WIDTH, MONITOR_HEIGHT = get_monitor_resolution()
 BOX_SIZE = 400
 
 
@@ -14,7 +23,6 @@ LOWER_COLOR_RANGE1 = np.array([0, 100, 100])
 UPPER_COLOR_RANGE1 = np.array([10, 255, 255])
 LOWER_COLOR_RANGE2 = np.array([160, 100, 100])
 UPPER_COLOR_RANGE2 = np.array([179, 255, 255])
-
 
 
 sct = mss()
@@ -44,7 +52,6 @@ def move_mouse(x_offset, y_offset, human_mode=True):
         threshold = 1
         if abs(x_offset) < threshold and abs(y_offset) < threshold:
             return
-            
     else:
         smoothness = 2
         x_move = int(x_offset / smoothness)
@@ -62,7 +69,6 @@ def move_mouse(x_offset, y_offset, human_mode=True):
     win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, x_move, y_move, 0, 0)
 
 def process_image(image, human_mode=True):
-
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     
     red_mask = cv2.inRange(hsv, LOWER_COLOR_RANGE1, UPPER_COLOR_RANGE1)
@@ -105,8 +111,8 @@ def process_image(image, human_mode=True):
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.circle(image, (center_x, center_y), 5, (255, 255, 255), -1)
 
-
 def main():
+    print(f"Detected resolution: {MONITOR_WIDTH}x{MONITOR_HEIGHT}")
     print("Aimbot is running... Press 'q' to quit.")
     
     human_aim_mode = True
