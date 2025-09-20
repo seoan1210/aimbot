@@ -5,6 +5,12 @@
 
 This script is a Python program that automatically aims at targets of a specific color (bright red) in games. It's very simple to use.
 
+이 에임봇은 에임 연습장에서 20분을 실행했을때 명중률 54% 이상입니다 헤드 명중률은 최대 45%까지 가능합니다.
+
+This aimbot has an accuracy of over 54% after 20 minutes of practice on the aiming range. The head hit rate can be up to 45%.
+
+
+
 1.  **실행하기 (Run the Script)**: 스크립트를 실행하면 터미널(검은색 창)이 열립니다
 
     When you run the script, a terminal (a black window) will open.
