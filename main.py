@@ -46,8 +46,18 @@ def move_mouse(x_offset, y_offset, human_mode=True):
             return
             
     else:
-        x_move = x_offset
-        y_move = y_offset
+        smoothness = 2
+        x_move = int(x_offset / smoothness)
+        y_move = int(y_offset / smoothness)
+        
+        if x_move == 0 and x_offset != 0:
+            x_move = 1 if x_offset > 0 else -1
+        if y_move == 0 and y_offset != 0:
+            y_move = 1 if y_offset > 0 else -1
+        
+        threshold = 0
+        if abs(x_offset) < threshold and abs(y_offset) < threshold:
+            return
 
     win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, x_move, y_move, 0, 0)
 
@@ -97,7 +107,7 @@ def process_image(image, human_mode=True):
 
 
 def main():
-    print("Aimvbot is running... Press 'q' to quit.")
+    print("Aimbot is running... Press 'q' to quit.")
     
     human_aim_mode = True
     
