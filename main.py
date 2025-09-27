@@ -8,8 +8,6 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 
-
-
 def get_monitor_resolution():
     try:
         w = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
@@ -20,7 +18,7 @@ def get_monitor_resolution():
         return 1920, 1080 
 
 MONITOR_WIDTH, MONITOR_HEIGHT = get_monitor_resolution()
-BOX_SIZE = 400
+BOX_SIZE = 300 
 
 LOWER_COLOR_RANGE1 = np.array([0, 100, 100])
 UPPER_COLOR_RANGE1 = np.array([10, 255, 255])
@@ -43,8 +41,8 @@ def grab_screen(sct_instance):
     sct_img = sct_instance.grab(box)
     return np.array(sct_img)
 
-
 def move_mouse(x_offset, y_offset, human_mode=True):
+    
     if human_mode:
         smoothness = 35
         x_move = int(x_offset / smoothness)
@@ -69,14 +67,11 @@ def move_mouse(x_offset, y_offset, human_mode=True):
         if y_move == 0 and y_offset != 0:
             y_move = 1 if y_offset > 0 else -1
             
-        threshold = 3
+        threshold = 2
         if abs(x_offset) <= threshold and abs(y_offset) <= threshold:
             return
 
     win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, x_move, y_move, 0, 0)
-
-
-
 
 
 class AimbotApp:
@@ -112,11 +107,22 @@ class AimbotApp:
         self.status_label = ttk.Label(main_frame, textvariable=self.status_text, style='TLabel')
         self.status_label.grid(row=2, column=0, columnspan=2, pady=10, sticky='ew')
         
+        self.close_button = ttk.Button(main_frame, text="Exit (종료)", command=self.close_app, style='TButton')
+        self.close_button.grid(row=3, column=0, columnspan=2, pady=10, sticky='ew')
+
         res_label = ttk.Label(main_frame, text=f"Resolution: {MONITOR_WIDTH}x{MONITOR_HEIGHT} | Box: {BOX_SIZE}x{BOX_SIZE}", font=('Helvetica', 8))
-        res_label.grid(row=3, column=0, columnspan=2, sticky='ew')
+        res_label.grid(row=4, column=0, columnspan=2, sticky='ew')
 
         self.update_status()
         
+    def stop_aimbot(self):
+        self.is_running = False
+        self.update_status()
+
+    def close_app(self):
+        self.stop_aimbot()
+        self.master.destroy()
+
     def update_status(self):
         mode = "Human Mode" if self.human_aim_mode.get() else "Fast Mode"
         if self.is_running:
@@ -142,10 +148,6 @@ class AimbotApp:
             self.aimbot_thread.start()
             self.update_status()
             
-    def stop_aimbot(self):
-        self.is_running = False
-        self.update_status()
-        
     def process_image(self, image, human_mode=True):
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         
@@ -169,7 +171,7 @@ class AimbotApp:
             
             x, y, w, h = cv2.boundingRect(c)
             aspect_ratio = w / float(h)
-
+            
             if aspect_ratio > 3.0 and h < 20 and y < BOX_SIZE / 2: 
                 if health_bar_contour is None or area > cv2.contourArea(health_bar_contour):
                     health_bar_contour = c
@@ -179,7 +181,6 @@ class AimbotApp:
             if moment["m00"] != 0:
                 center_x = int(moment["m10"] / moment["m00"])
                 center_y = int(moment["m01"] / moment["m00"])
-
 
                 center_x_offset = int(center_x - (BOX_SIZE / 2)) + 30 
                 center_y_offset = int(center_y - (BOX_SIZE / 2)) + 60
@@ -213,7 +214,7 @@ class AimbotApp:
 def main_gui():
     root = tk.Tk()
     app = AimbotApp(root)
-    root.protocol("WM_DELETE_WINDOW", app.stop_aimbot) 
+    root.protocol("WM_DELETE_WINDOW", app.close_app) 
     root.mainloop()
 
 if __name__ == "__main__":
