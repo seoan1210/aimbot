@@ -107,7 +107,7 @@ class AimbotApp:
         self.status_label = ttk.Label(main_frame, textvariable=self.status_text, style='TLabel')
         self.status_label.grid(row=2, column=0, columnspan=2, pady=10, sticky='ew')
         
-        self.close_button = ttk.Button(main_frame, text="Exit (종료)", command=self.close_app, style='TButton')
+        self.close_button = ttk.Button(main_frame, text="Exit", command=self.close_app, style='TButton')
         self.close_button.grid(row=3, column=0, columnspan=2, pady=10, sticky='ew')
 
         res_label = ttk.Label(main_frame, text=f"Resolution: {MONITOR_WIDTH}x{MONITOR_HEIGHT} | Box: {BOX_SIZE}x{BOX_SIZE}", font=('Helvetica', 8))
