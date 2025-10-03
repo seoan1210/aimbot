@@ -18,7 +18,7 @@ def get_monitor_resolution():
         return 1920, 1080 
 
 MONITOR_WIDTH, MONITOR_HEIGHT = get_monitor_resolution()
-BOX_SIZE = 300 
+BOX_SIZE = 1000
 
 LOWER_COLOR_RANGE1 = np.array([0, 100, 100])
 UPPER_COLOR_RANGE1 = np.array([10, 255, 255])
