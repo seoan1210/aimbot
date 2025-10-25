@@ -9,57 +9,67 @@ import torch
 from ultralytics import YOLO
 import os
 import win32gui
-import sys 
-import math
+import sys
 
-MONITOR_WIDTH = 320     
-MONITOR_HEIGHT = 320    
+
+MONITOR_WIDTH = 320
+MONITOR_HEIGHT = 320
 
 MONITOR_LEFT = (1920 - MONITOR_WIDTH) // 2
 MONITOR_TOP = (1080 - MONITOR_HEIGHT) // 2
 
-MODEL_PATH = 'overwatch.pt'         
-ENGINE_PATH = 'overwatch_tensorrt.engine' 
+MODEL_PATH = 'overwatch.pt'
+ENGINE_PATH = 'overwatch_tensorrt.engine'
 
-CONF_THRESHOLD = 0.5    
-TARGET_CLASS = 0        
-SMOOTHING = 3.0         
-MAX_DISTANCE = 400      
+CONF_THRESHOLD = 0.5
+TARGET_CLASS = 0
+SMOOTHING = 1.2
+MAX_DISTANCE = 450
 
-DEBUG_WINDOW_NAME = "Overwatch AI"
+ACCUMULATED_X_ERROR = 0.0
+ACCUMULATED_Y_ERROR = 0.0
+
+DEBUG_WINDOW_NAME = "Overwatch AI | F2: Toggle AI | F3: Toggle Mode"
 HUMAN_MODE_ACTIVE = False
 
-def move_mouse(x_offset, y_offset, human_mode=False):
-    if human_mode:
-        smoothness = 15
-        x_move = int(x_offset / smoothness)
-        y_move = int(y_offset / smoothness)
-        
-        if x_move == 0 and x_offset != 0:
-            x_move = 1 if x_offset > 0 else -1
-        if y_move == 0 and y_offset != 0:
-            y_move = 1 if y_offset > 0 else -1
-            
-        threshold = 3
-        if abs(x_offset) < threshold and abs(y_offset) < threshold:
-            return
-    else:
-        sensitivity = 0.5
-        
-        x_move_float = x_offset * sensitivity
-        y_move_float = y_offset * sensitivity
-        
-        x_move = int(round(x_move_float))
-        y_move = int(round(y_move_float)) 
 
-        if x_move == 0 and x_offset != 0:
-            x_move = 1 if x_offset > 0 else -1
-        if y_move == 0 and y_offset != 0:
-            y_move = 1 if y_offset > 0 else -1
-            
-        threshold = 3
-        if abs(x_offset) <= threshold and abs(y_offset) <= threshold:
+def move_mouse(x_offset, y_offset, human_mode=False):
+    
+    global ACCUMULATED_X_ERROR, ACCUMULATED_Y_ERROR
+    
+    if human_mode:
+
+        SMOOTH_FACTOR = 8
+        
+        x_target_move_float = x_offset / SMOOTH_FACTOR
+        y_target_move_float = y_offset / SMOOTH_FACTOR
+        
+        threshold = 4
+        if abs(x_offset) < threshold and abs(y_offset) < threshold:
+            ACCUMULATED_X_ERROR *= 0.9
+            ACCUMULATED_Y_ERROR *= 0.9
             return
+            
+    else:
+        sensitivity = 0.3
+        
+        x_target_move_float = x_offset * sensitivity
+        y_target_move_float = y_offset * sensitivity
+
+        threshold = 2
+        if abs(x_offset) <= threshold and abs(y_offset) <= threshold:
+            ACCUMULATED_X_ERROR *= 0.9
+            ACCUMULATED_Y_ERROR *= 0.9
+            return
+
+    x_move_with_error = x_target_move_float + ACCUMULATED_X_ERROR
+    y_move_with_error = y_target_move_float + ACCUMULATED_Y_ERROR
+
+    x_move = int(x_move_with_error)
+    y_move = int(y_move_with_error)
+    
+    ACCUMULATED_X_ERROR = x_move_with_error - x_move
+    ACCUMULATED_Y_ERROR = y_move_with_error - y_move
 
     if x_move != 0 or y_move != 0:
         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, x_move, y_move, 0, 0)
@@ -70,7 +80,6 @@ def convert_to_tensorrt():
     
     try:
         model = YOLO(MODEL_PATH)
-        
         success_path = model.export(
             format='engine', 
             half=True, 
@@ -85,10 +94,9 @@ def convert_to_tensorrt():
                     os.remove(ENGINE_PATH)
                 os.rename(success_path, ENGINE_PATH)
             return True
-        else:
-            return False
+        return False
             
-    except Exception as e: 
+    except Exception: 
         return False
 
 def capture_screen():
@@ -103,40 +111,32 @@ def capture_screen():
         return cv2.cvtColor(screenshot, cv2.COLOR_BGRA2BGR) 
 
 def aim_at_target(detections_data, screen_center_x, screen_center_y, prev_target=None):
-    if not detections_data or not detections_data.boxes or detections_data.boxes.data.numel() == 0:
+    if not detections_data or detections_data.boxes.data.numel() == 0:
         return None
     
     detections = detections_data.boxes.data.cpu().numpy()
-    target_candidates = []
     
-    for det in detections:
-        if int(det[5]) == TARGET_CLASS and float(det[4]) >= CONF_THRESHOLD:
-            target_candidates.append(det)
+    valid_detections = detections[(detections[:, 5] == TARGET_CLASS) & (detections[:, 4] >= CONF_THRESHOLD)]
     
-    if not target_candidates:
+    if valid_detections.size == 0:
         return None
     
-    best_target_info = None
-    min_distance = float('inf') 
+    x1, y1, x2, y2 = valid_detections[:, 0:4].T
     
-    for det in target_candidates:
-        x1, y1, x2, y2 = det[0:4].astype(int) 
-        
-        box_height = y2 - y1
-        target_center_x = (x1 + x2) // 2 
-        target_center_y = y1 + int(box_height / 5)
-        
-        distance = ((target_center_x - screen_center_x) ** 2 + 
-                    (target_center_y - screen_center_y) ** 2) ** 0.5
-        
-        if distance <= MAX_DISTANCE and distance < min_distance:
-            min_distance = distance
-            best_target_info = (target_center_x, target_center_y)
+    target_center_x = ((x1 + x2) / 2).astype(int)
+    target_center_y = (y1 + (y2 - y1) / 6).astype(int)
+
+    distances = np.sqrt((target_center_x - screen_center_x) ** 2 + (target_center_y - screen_center_y) ** 2)
     
-    if not best_target_info: 
+    close_targets_indices = np.where(distances <= MAX_DISTANCE)[0]
+    
+    if close_targets_indices.size == 0:
         return None
     
-    target_x, target_y = best_target_info[0], best_target_info[1]
+    best_target_index = close_targets_indices[np.argmin(distances[close_targets_indices])]
+    
+    target_x = target_center_x[best_target_index]
+    target_y = target_center_y[best_target_index]
     
     if prev_target and SMOOTHING > 1.0:
         prev_x, prev_y = prev_target
@@ -162,12 +162,11 @@ def set_window_always_on_top(window_title):
         hwnd = win32gui.FindWindow(None, window_title)
         if hwnd:
             win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, 
-                                  win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+                                 win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     except Exception:
         pass 
 
 def main():
-    
     tensorrt_conversion_success = convert_to_tensorrt()
     device_to_use = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
@@ -177,8 +176,8 @@ def main():
         sys.exit(1)
         
     try:
-        model = YOLO(model_path_to_use)
-    except Exception as e:
+        model = YOLO(model_path_to_use, task='detect')
+    except Exception:
         sys.exit(1)
 
     global HUMAN_MODE_ACTIVE
@@ -196,7 +195,6 @@ def main():
             
             try:
                 cv2.imshow(DEBUG_WINDOW_NAME, img)
-                
                 if not window_set_topmost_once and cv2.getWindowProperty(DEBUG_WINDOW_NAME, cv2.WND_PROP_VISIBLE) >= 1:
                     set_window_always_on_top(DEBUG_WINDOW_NAME)
                     window_set_topmost_once = True
@@ -225,10 +223,7 @@ def main():
                             prev_target_on_screen
                         )
                         
-                        if target_pos_for_visual:
-                            prev_target_on_screen = target_pos_for_visual 
-                        else:
-                            prev_target_on_screen = None 
+                        prev_target_on_screen = target_pos_for_visual
                     else:
                         prev_target_on_screen = None 
                 except Exception:
@@ -248,7 +243,7 @@ def main():
                         if cls == TARGET_CLASS and conf >= CONF_THRESHOLD: 
                             color = (255, 0, 0)
                             cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
-                            cv2.putText(img, f"Enemy: {conf:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
+                            cv2.putText(img, f"Enemy: {conf:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.3, color, 1)
                 
                 if target_pos_for_visual:
                     cv2.circle(img, target_pos_for_visual, 5, (0, 0, 255), -1)
@@ -257,8 +252,8 @@ def main():
                 status_text = "ACTIVE" if ai_active else "INACTIVE"
                 color_status = (0, 255, 0) if ai_active else (0, 0, 255)
                 mode_text = "Human" if HUMAN_MODE_ACTIVE else "Sense"
-                cv2.putText(img, f"AI: {status_text} (Mode: {mode_text})", (10, 30), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_status, 2)
+                cv2.putText(img, f"AI: {status_text} (Mode: {mode_text}) by seoan1210", (10, 30), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_status, 2)
                 
                 cv2.line(img, (screen_center_x - 10, screen_center_y), (screen_center_x + 10, screen_center_y), (255, 255, 255), 1)
                 cv2.line(img, (screen_center_x, screen_center_y - 10), (screen_center_x, screen_center_y + 10), (255, 255, 255), 1)
@@ -274,7 +269,7 @@ def main():
             if keyboard.is_pressed('f3') and (time.time() - last_toggle_time > 0.5): 
                 HUMAN_MODE_ACTIVE = not HUMAN_MODE_ACTIVE
                 last_toggle_time = time.time()
-            
+                
             if cv2.waitKey(1) & 0xFF == ord('q') or cv2.getWindowProperty(DEBUG_WINDOW_NAME, cv2.WND_PROP_VISIBLE) < 1:
                 break
     
