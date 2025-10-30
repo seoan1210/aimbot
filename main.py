@@ -11,12 +11,8 @@ import os
 import win32gui
 import sys
 
-
-MONITOR_WIDTH = 320
-MONITOR_HEIGHT = 320
-
-MONITOR_LEFT = (1920 - MONITOR_WIDTH) // 2
-MONITOR_TOP = (1080 - MONITOR_HEIGHT) // 2
+MONITOR_WIDTH = 350
+MONITOR_HEIGHT = 350
 
 MODEL_PATH = 'overwatch.pt'
 ENGINE_PATH = 'overwatch_tensorrt.engine'
@@ -32,15 +28,14 @@ ACCUMULATED_Y_ERROR = 0.0
 DEBUG_WINDOW_NAME = "Overwatch AI | F2: Toggle AI | F3: Toggle Mode"
 HUMAN_MODE_ACTIVE = False
 
+def get_primary_monitor_resolution():
+    return win32api.GetSystemMetrics(0), win32api.GetSystemMetrics(1)
 
 def move_mouse(x_offset, y_offset, human_mode=False):
-    
     global ACCUMULATED_X_ERROR, ACCUMULATED_Y_ERROR
     
     if human_mode:
-
-        SMOOTH_FACTOR = 8
-        
+        SMOOTH_FACTOR = 25
         x_target_move_float = x_offset / SMOOTH_FACTOR
         y_target_move_float = y_offset / SMOOTH_FACTOR
         
@@ -56,7 +51,7 @@ def move_mouse(x_offset, y_offset, human_mode=False):
         x_target_move_float = x_offset * sensitivity
         y_target_move_float = y_offset * sensitivity
 
-        threshold = 2
+        threshold = 7
         if abs(x_offset) <= threshold and abs(y_offset) <= threshold:
             ACCUMULATED_X_ERROR *= 0.9
             ACCUMULATED_Y_ERROR *= 0.9
@@ -99,18 +94,18 @@ def convert_to_tensorrt():
     except Exception: 
         return False
 
-def capture_screen():
+def capture_screen(monitor_left, monitor_top):
     with mss() as sct:
         monitor_config = {
-            "top": MONITOR_TOP, 
-            "left": MONITOR_LEFT, 
+            "top": monitor_top, 
+            "left": monitor_left, 
             "width": MONITOR_WIDTH, 
             "height": MONITOR_HEIGHT
         }
         screenshot = np.array(sct.grab(monitor_config))
         return cv2.cvtColor(screenshot, cv2.COLOR_BGRA2BGR) 
 
-def aim_at_target(detections_data, screen_center_x, screen_center_y, prev_target=None):
+def aim_at_target(detections_data, screen_center_x, screen_center_y, monitor_left, monitor_top, prev_target=None):
     if not detections_data or detections_data.boxes.data.numel() == 0:
         return None
     
@@ -147,8 +142,8 @@ def aim_at_target(detections_data, screen_center_x, screen_center_y, prev_target
 
     current_mouse_x, current_mouse_y = win32api.GetCursorPos()
     
-    global_target_x = MONITOR_LEFT + target_x
-    global_target_y = MONITOR_TOP + target_y
+    global_target_x = monitor_left + target_x
+    global_target_y = monitor_top + target_y
 
     delta_x = global_target_x - current_mouse_x
     delta_y = global_target_y - current_mouse_y
@@ -162,22 +157,29 @@ def set_window_always_on_top(window_title):
         hwnd = win32gui.FindWindow(None, window_title)
         if hwnd:
             win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, 
-                                 win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+                                  win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     except Exception:
         pass 
 
 def main():
+    full_screen_width, full_screen_height = get_primary_monitor_resolution()
+    
+    MONITOR_LEFT = (full_screen_width - MONITOR_WIDTH) // 2
+    MONITOR_TOP = (full_screen_height - MONITOR_HEIGHT) // 2
+    
     tensorrt_conversion_success = convert_to_tensorrt()
     device_to_use = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     model_path_to_use = ENGINE_PATH if tensorrt_conversion_success else MODEL_PATH
     
     if not os.path.exists(model_path_to_use):
+        print(f"Error: Model file not found at {model_path_to_use}")
         sys.exit(1)
         
     try:
         model = YOLO(model_path_to_use, task='detect')
-    except Exception:
+    except Exception as e:
+        print(f"Error loading model: {e}")
         sys.exit(1)
 
     global HUMAN_MODE_ACTIVE
@@ -191,7 +193,7 @@ def main():
 
     with torch.no_grad():
         while True:
-            img = capture_screen()
+            img = capture_screen(MONITOR_LEFT, MONITOR_TOP)
             
             try:
                 cv2.imshow(DEBUG_WINDOW_NAME, img)
@@ -207,9 +209,9 @@ def main():
             if ai_active:
                 try:
                     results_list = model.predict(
-                        source=img,       
-                        stream=False,     
-                        verbose=False,    
+                        source=img,
+                        stream=False,
+                        verbose=False,
                         conf=CONF_THRESHOLD,
                         device=device_to_use
                     )
@@ -220,15 +222,17 @@ def main():
                         target_pos_for_visual = aim_at_target(
                             detections_results, 
                             screen_center_x, screen_center_y, 
+                            MONITOR_LEFT, MONITOR_TOP,
                             prev_target_on_screen
                         )
                         
                         prev_target_on_screen = target_pos_for_visual
                     else:
                         prev_target_on_screen = None 
-                except Exception:
+                except Exception as e:
                     ai_active = False
                     prev_target_on_screen = None
+                    print(f"Prediction or Aiming Error: {e}")
 
             else:
                 prev_target_on_screen = None 
@@ -265,7 +269,7 @@ def main():
                 last_toggle_time = time.time()
                 if not ai_active:
                     prev_target_on_screen = None 
-            
+                
             if keyboard.is_pressed('f3') and (time.time() - last_toggle_time > 0.5): 
                 HUMAN_MODE_ACTIVE = not HUMAN_MODE_ACTIVE
                 last_toggle_time = time.time()
