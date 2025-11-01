@@ -35,7 +35,7 @@ def move_mouse(x_offset, y_offset, human_mode=False):
     global ACCUMULATED_X_ERROR, ACCUMULATED_Y_ERROR
     
     if human_mode:
-        SMOOTH_FACTOR = 25
+        SMOOTH_FACTOR = 15
         x_target_move_float = x_offset / SMOOTH_FACTOR
         y_target_move_float = y_offset / SMOOTH_FACTOR
         
