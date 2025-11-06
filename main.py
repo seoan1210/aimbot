@@ -11,8 +11,8 @@ import os
 import win32gui
 import sys
 
-MONITOR_WIDTH = 350
-MONITOR_HEIGHT = 350
+MONITOR_WIDTH = 320
+MONITOR_HEIGHT = 320
 
 MODEL_PATH = 'overwatch.pt'
 ENGINE_PATH = 'overwatch_tensorrt.engine'
@@ -35,7 +35,7 @@ def move_mouse(x_offset, y_offset, human_mode=False):
     global ACCUMULATED_X_ERROR, ACCUMULATED_Y_ERROR
     
     if human_mode:
-        SMOOTH_FACTOR = 15
+        SMOOTH_FACTOR = 20
         x_target_move_float = x_offset / SMOOTH_FACTOR
         y_target_move_float = y_offset / SMOOTH_FACTOR
         
@@ -256,8 +256,8 @@ def main():
                 status_text = "ACTIVE" if ai_active else "INACTIVE"
                 color_status = (0, 255, 0) if ai_active else (0, 0, 255)
                 mode_text = "Human" if HUMAN_MODE_ACTIVE else "Sense"
-                cv2.putText(img, f"AI: {status_text} (Mode: {mode_text}) by seoan1210", (10, 30), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.4, color_status, 2)
+                cv2.putText(img, f"AI: {status_text} (Mode: {mode_text})", (10, 30), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, color_status, 2)
                 
                 cv2.line(img, (screen_center_x - 10, screen_center_y), (screen_center_x + 10, screen_center_y), (255, 255, 255), 1)
                 cv2.line(img, (screen_center_x, screen_center_y - 10), (screen_center_x, screen_center_y + 10), (255, 255, 255), 1)
