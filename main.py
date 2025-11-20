@@ -22,7 +22,7 @@ CONF_THRESHOLD = 0.5
 TARGET_CLASS = 0
 SMOOTHING = 1.2
 MAX_DISTANCE = 450
-DEBUG_WINDOW_NAME = "Overwatch AI | F2: Toggle AI | F3: Toggle Mode | F4: Toggle Debug"
+DEBUG_WINDOW_NAME = "Overwatch AI | F2: Toggle AI | F3: Toggle Mode"
 PREDICTION_FACTOR = 0.04
 
 # --- Global State Variables ---
