@@ -13,7 +13,6 @@ import sys
 import threading
 import queue 
 
-# --- Global Settings ---
 MONITOR_WIDTH = 320
 MONITOR_HEIGHT = 320
 MODEL_PATH = 'overwatch.pt'
@@ -25,21 +24,17 @@ MAX_DISTANCE = 450
 DEBUG_WINDOW_NAME = "Overwatch AI | F2: Toggle AI | F3: Toggle Mode"
 PREDICTION_FACTOR = 0.04
 
-# --- Global State Variables ---
 ACCUMULATED_X_ERROR = 0.0
 ACCUMULATED_Y_ERROR = 0.0
 HUMAN_MODE_ACTIVE = False
 AI_ACTIVE = False
 PREV_TARGET_ON_SCREEN = None
 SHOW_DEBUG_WINDOW = True
-PREV_TARGET_GLOBAL_POS = None
-PREV_TARGET_TIME = None
+PREV_TARGET_GLOBAL_POS = None 
+PREV_TARGET_TIME = None        
 
-# --- Thread Communication Queues ---
 IMAGE_QUEUE = queue.Queue(maxsize=1) 
 RESULT_QUEUE = queue.Queue(maxsize=1) 
-
-# --- Utility Functions ---
 
 def get_primary_monitor_resolution():
     return win32api.GetSystemMetrics(0), win32api.GetSystemMetrics(1)
@@ -93,13 +88,13 @@ def convert_to_tensorrt():
         
         success_path = model.export(
             format='engine', 
-            half=True,
+            half=True,       
             imgsz=[MONITOR_HEIGHT, MONITOR_WIDTH], 
             device='0',
             simplify=True,
-            workspace=8,
-            iou=0.6,
-            nms=True,
+            workspace=8,     
+            iou=0.6,         
+            nms=True,        
         )
         
         if success_path and os.path.exists(success_path):
@@ -130,11 +125,11 @@ def capture_screen(monitor_left, monitor_top):
 def aim_at_target(detections_data, screen_center_x, screen_center_y, monitor_left, monitor_top):
     global PREV_TARGET_ON_SCREEN, PREV_TARGET_GLOBAL_POS, PREV_TARGET_TIME, PREDICTION_FACTOR
 
-    current_time = time.time()
+    current_time = time.time() 
 
     if not detections_data or detections_data.boxes.data.numel() == 0:
         PREV_TARGET_ON_SCREEN = None
-        PREV_TARGET_GLOBAL_POS = None
+        PREV_TARGET_GLOBAL_POS = None 
         PREV_TARGET_TIME = None
         return None
     
@@ -196,7 +191,7 @@ def aim_at_target(detections_data, screen_center_x, screen_center_y, monitor_lef
         target_y_smooth = int(prev_y + (final_target_y - prev_y) / SMOOTHING)
     else:
         target_x_smooth, target_y_smooth = int(final_target_x), int(final_target_y)
-    
+
     current_mouse_x, current_mouse_y = win32api.GetCursorPos()
     
     global_target_x = monitor_left + target_x_smooth
@@ -208,8 +203,8 @@ def aim_at_target(detections_data, screen_center_x, screen_center_y, monitor_lef
     move_mouse(delta_x, delta_y, human_mode=HUMAN_MODE_ACTIVE)
     
     PREV_TARGET_ON_SCREEN = (target_x_smooth, target_y_smooth)
-    PREV_TARGET_GLOBAL_POS = (current_global_x, current_global_y)
-    PREV_TARGET_TIME = current_time
+    PREV_TARGET_GLOBAL_POS = (current_global_x, current_global_y) 
+    PREV_TARGET_TIME = current_time                               
 
     return (target_x_smooth, target_y_smooth)
 
@@ -221,8 +216,6 @@ def set_window_always_on_top(window_title):
                                      win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     except Exception:
         pass 
-
-# --- Thread Functions (Capture and Inference) ---
 
 def capture_thread_func(monitor_left, monitor_top):
     while True:
@@ -376,6 +369,8 @@ def main():
             cv2.line(img, (screen_center_x, screen_center_y - 10), (screen_center_x, screen_center_y + 10), (255, 255, 255), 1)
 
             cv2.imshow(DEBUG_WINDOW_NAME, img)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
         
         if not SHOW_DEBUG_WINDOW and cv2.getWindowProperty(DEBUG_WINDOW_NAME, cv2.WND_PROP_VISIBLE) >= 1:
             cv2.destroyAllWindows()
